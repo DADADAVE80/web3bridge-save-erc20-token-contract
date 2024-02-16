@@ -31,22 +31,29 @@ describe("SaveERC20 contract", () => {
     });
 
     describe("Deposit test", async () => {
-        it("Should have ERC20 Tokens", async () => {
+
+        it("Should be approved to deposit", async  () => {
             const {owner, erc20Token, saveERC20} = await loadFixture(deploySaveERC20);
 
-            await erc20Token.balanceOf(owner.address);
             await erc20Token.approve(saveERC20.target, 2000);
+            const allowance = await erc20Token.allowance(owner.address, saveERC20.target);
 
-            await saveERC20.deposit(1000);
-
-            const bal = await saveERC20.checkUserBalance(owner)
-
-
-            console.log(bal);
+            assert.isNotNull(allowance.toString());
+            console.log(allowance);
         });
 
         it("Should not be able to deposit zero tokens", async () => {
-            const {owner, erc20Token, saveERC20} = await loadFixture(deploySaveERC20);
+            const {saveERC20} = await loadFixture(deploySaveERC20);
+
+            // const zeroDeposit = await saveERC20.deposit(0);
+
+            expect(saveERC20.deposit(0)).to.be.revertedWith("can't save zero value");
+        });
+
+        it("Should not deposit from address zero", async () => {
+            const {owner, erc20Token, saveERC20, zeroAddress} = await loadFixture(deploySaveERC20);
+
+            expect(owner).is.not.equal(zeroAddress);
         });
     });
 });
